@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Green Kitchen System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="mx-auto h-12 w-12 bg-green-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-leaf text-white text-xl"></i>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Green Kitchen System
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Sign in to your account
+            </p>
+        </div>
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="remember" value="true">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="username" class="sr-only">Username</label>
+                    <input id="username" name="username" type="text" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm" placeholder="Username">
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Password</label>
+                    <input id="password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm" placeholder="Password">
+                </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <p>Please enter a correct username and password.</p>
+            </div>
+            {% endif %}
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-sign-in-alt text-green-500 group-hover:text-green-400"></i>
+                    </span>
+                    Sign in
+                </button>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-sm font-semibold text-blue-800 mb-2 text-center">Demo Credentials</h3>
+                <div class="space-y-1 text-xs text-blue-700">
+                    <div class="flex justify-between">
+                        <span>Admin:</span>
+                        <span class="font-mono">admin / admin123</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Customer:</span>
+                        <span class="font-mono">customer1 / customer123</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Waste Collector:</span>
+                        <span class="font-mono">collector1 / collector123</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Kitchen Manager:</span>
+                        <span class="font-mono">kitchen1 / kitchen123</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Distributor:</span>
+                        <span class="font-mono">distributor1 / distributor123</span>
+                    </div>
+                </div>
+                <p class="text-xs text-blue-600 mt-2 text-center">
+                    Each role has access to different features in the system
+                </p>
+            </div>
+
+            <p class="text-center text-sm text-gray-600 font-medium pt-2">
+                👇 **Click a button to auto-fill credentials for quick demo access.**
+            </p>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="fillCredentials('admin', 'admin123')" class="bg-purple-100 text-purple-700 py-2 px-3 rounded text-xs font-medium hover:bg-purple-200 transition">
+                    <i class="fas fa-user-shield mr-1"></i>Admin
+                </button>
+                <button type="button" onclick="fillCredentials('customer1', 'customer123')" class="bg-blue-100 text-blue-700 py-2 px-3 rounded text-xs font-medium hover:bg-blue-200 transition">
+                    <i class="fas fa-user mr-1"></i>Customer
+                </button>
+                <button type="button" onclick="fillCredentials('collector1', 'collector123')" class="bg-orange-100 text-orange-700 py-2 px-3 rounded text-xs font-medium hover:bg-orange-200 transition">
+                    <i class="fas fa-trash-alt mr-1"></i>Collector
+                </button>
+                <button type="button" onclick="fillCredentials('kitchen1', 'kitchen123')" class="bg-teal-100 text-teal-700 py-2 px-3 rounded text-xs font-medium hover:bg-teal-200 transition">
+                    <i class="fas fa-industry mr-1"></i>Kitchen
+                </button>
+                <button type="button" onclick="fillCredentials('distributor1', 'distributor123')" class="bg-red-100 text-red-700 py-2 px-3 rounded text-xs font-medium hover:bg-red-200 transition col-span-2">
+                    <i class="fas fa-truck mr-1"></i>Distributor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function fillCredentials(username, password) {
+        document.getElementById('username').value = username;
+        document.getElementById('password').value = password;
+        
+        // Optional: Show a quick notification
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check mr-1"></i>Filled!';
+        
+        // Save original classes to restore them properly
+        const originalClasses = button.className;
+        
+        // Remove all current color classes and add the success class
+        button.classList.forEach(className => {
+            if (className.includes('-100') || className.includes('-700')) {
+                button.classList.remove(className);
+            }
+        });
+        button.classList.add('bg-green-100', 'text-green-700');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('bg-green-100', 'text-green-700');
+            
+            // Re-apply original color classes using the originalClasses string (safer)
+            const classesToRestore = originalClasses.split(' ').filter(c => c.includes('-100') || c.includes('-700'));
+            button.classList.add(...classesToRestore);
+
+        }, 1500);
+    }
+</script>
+
+<style>
+    .font-mono {
+        font-family: 'Courier New', monospace;
+    }
+</style>
+{% endblock %}

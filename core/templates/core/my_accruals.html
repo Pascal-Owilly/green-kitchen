@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}My Accruals - Green Kitchen System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">My Accrual Balance</h1>
+        <p class="text-gray-600 mt-2">Track your waste delivery earnings and gas purchases</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium opacity-90">Current Balance</p>
+                    <p class="text-3xl font-bold mt-2">KES {{ accrual.balance }}</p>
+                    <p class="text-sm opacity-90 mt-1">Last updated: {{ accrual.last_updated|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="p-3 bg-yellow-700 rounded-full">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <i class="fas fa-trash-alt text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Waste Delivered</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {# FIXED: Use the context variable calculated in the view #}
+                        {{ total_waste_delivered_kg|default:0 }} kg
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-100 rounded-lg">
+                    <i class="fas fa-fire text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Gas Purchases</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ distributions|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-6 text-gray-800">Waste Delivery History</h3>
+            
+            {% if waste_deliveries %}
+            <div class="space-y-4">
+                {% for delivery in waste_deliveries %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ delivery.invoice_number }}</p>
+                            <p class="text-sm text-gray-600">{{ delivery.collection_date|date:"M d, Y" }}</p>
+                            <p class="text-sm text-gray-600">Type: {{ delivery.get_waste_type_display }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-green-600">{{ delivery.quantity_kg }} kg</p>
+                            <p class="text-sm text-gray-600">KES {{ delivery.total_amount }}</p>
+                            <span class="inline-block px-2 py-1 text-xs rounded-full {% if delivery.payment_type == 'accrual' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ delivery.get_payment_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-trash-alt text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-500">No waste deliveries yet.</p>
+                <p class="text-sm text-gray-400 mt-2">Deliver waste to collection points to earn accruals</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-6 text-gray-800">Gas Purchase History</h3>
+            
+            {% if distributions %}
+            <div class="space-y-4">
+                {% for distribution in distributions %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ distribution.cylinder.cylinder_id }}</p>
+                            <p class="text-sm text-gray-600">{{ distribution.distribution_date|date:"M d, Y" }}</p>
+                            <p class="text-sm text-gray-600">Distributor: {{ distribution.distributor.username }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-blue-600">{{ distribution.gas_amount_kg }} kg</p>
+                            <p class="text-sm text-gray-600">KES {{ distribution.total_price }}</p>
+                            <span class="inline-block px-2 py-1 text-xs rounded-full {% if distribution.payment_method == 'accrual' %}bg-yellow-100 text-yellow-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                {{ distribution.get_payment_method_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-fire text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-500">No gas purchases yet.</p>
+                <p class="text-sm text-gray-400 mt-2">Purchase gas using your accrual balance or cash</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-8 bg-gray-50 rounded-lg shadow-lg p-6">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">How Accruals Work</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-trash text-green-600"></i>
+                </div>
+                <h4 class="font-semibold text-gray-900">1. Deliver Waste</h4>
+                <p class="text-sm text-gray-600 mt-1">Bring your agricultural, household, or animal waste to collection points</p>
+            </div>
+            <div class="text-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-wallet text-yellow-600"></i>
+                </div>
+                <h4 class="font-semibold text-gray-900">2. Earn Accruals</h4>
+                <p class="text-sm text-gray-600 mt-1">Choose 'accrual' payment to add funds to your balance instead of cash</p>
+            </div>
+            <div class="text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-fire text-blue-600"></i>
+                </div>
+                <h4 class="font-semibold text-gray-900">3. Redeem for Gas</h4>
+                <p class="text-sm text-gray-600 mt-1">Use your accrual balance to pay for gas cylinders or open kitchen sessions</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

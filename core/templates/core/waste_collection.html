@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Waste Collection - Green Kitchen System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Waste Collection Management</h1>
+        <p class="text-gray-600 mt-2">Record waste deliveries from customers</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-6 text-green-700">Record New Collection</h3>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    
+                    <div>
+                        <label for="{{ form.collection_point.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Collection Point</label>
+                        
+                        <div class="flex items-start space-x-2">
+                            <div class="flex-grow">
+                                {% render_field form.collection_point class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" %}
+                            </div>
+                            
+                            <a href="{% url 'add_collection_point' %}" 
+                               class="mt-1 flex-shrink-0 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-md shadow-sm transition duration-150 sm:text-sm"
+                               title="Add New Collection Point">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </div>
+
+                        {% for error in form.collection_point.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <label for="{{ form.customer.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                        {% render_field form.customer class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" %}
+                        {% for error in form.customer.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.waste_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Waste Type</label>
+                        {% render_field form.waste_type class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" %}
+                        {% for error in form.waste_type.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.quantity_kg.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Quantity (kg)</label>
+                        {% render_field form.quantity_kg class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="e.g., 5.5" %}
+                        {% for error in form.quantity_kg.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.payment_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+                        {% render_field form.payment_type class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" %}
+                        {% for error in form.payment_type.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+                
+                <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition mt-6">
+                    <i class="fas fa-save mr-2"></i>Record Collection
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-semibold mb-6 text-gray-800">Recent Collections</h3>
+            
+            {% if collections %}
+            <div class="space-y-4">
+                {% for collection in collections %}
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ collection.invoice_number }}</p>
+                            <p class="text-sm text-gray-600">{{ collection.customer.username }}</p>
+                            <p class="text-sm text-gray-600">{{ collection.collection_date|date:"M d, Y H:i" }}</p>
+                            <p class="text-sm text-gray-700 font-medium">Point: **{{ collection.collection_point.name }}**</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-green-600">{{ collection.quantity_kg }} kg</p>
+                            <p class="text-sm text-gray-600">KES {{ collection.total_amount }}</p>
+                            <span class="inline-block px-2 py-1 text-xs rounded-full {% if collection.payment_type == 'accrual' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ collection.get_payment_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-trash-alt text-gray-300 text-4xl mb-4"></i>
+                <p class="text-gray-500">No collections recorded yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

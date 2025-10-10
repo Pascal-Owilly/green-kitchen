@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EDSCON Investment LTD{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .sidebar:hover {
+            width: 16rem;
+        }
+        .sidebar {
+            transition: width 0.3s ease;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        
+                        <img src="{% static 'images/edscon-logo.png' %}" alt="Edison Logo" class="h-10 w-auto">
+                        
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <span class="text-green-100 hidden sm:inline">Welcome, {{ user.get_full_name|default:user.username }}</span>
+                        <div class="relative group">
+                            <button class="flex items-center space-x-2 bg-green-700 px-3 py-2 rounded-lg hover:bg-green-600 transition">
+                                <i class="fas fa-user-circle"></i>
+                                <span>{{ user.get_user_type_display }}</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            
+                            <div class="absolute right-0 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block z-10">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Profile
+                                </a>
+                                <form method="post" action="{% url 'logout' %}" class="w-full">
+                                    {% csrf_token %}
+                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="bg-white text-green-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                            Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        {% if user.is_authenticated %}
+        <div class="sidebar bg-white w-16 hover:w-64 h-screen shadow-lg overflow-hidden transition-all duration-300 sticky top-0">
+            <div class="p-4">
+                <nav class="mt-8">
+                    <div class="space-y-2">
+                        <a href="{% url 'dashboard' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Dashboard</span>
+                        </a>
+                        
+                        {% if user.user_type == 'admin' %}
+                        <a href="{% url 'report_list' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-chart-bar text-blue-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Reports</span>
+                        </a>
+                        <a href="{% url 'user_management' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-users text-purple-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Users</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.user_type == 'waste_collector' %}
+                        <a href="{% url 'waste_collections' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-trash-alt text-orange-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Waste Collection</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.user_type == 'kitchen_manager' %}
+                        <a href="{% url 'biodigester_management' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-industry text-teal-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Biodigester</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.user_type == 'distributor' %}
+                        <a href="{% url 'distribution_management' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-truck text-red-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Distribution</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.user_type == 'customer' %}
+                        <a href="{% url 'my_accruals' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-wallet text-yellow-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">My Accruals</span>
+                        </a>
+                        <a href="{% url 'open_kitchens' %}" class="flex items-center p-2 text-gray-700 hover:bg-green-50 rounded-lg group">
+                            <i class="fas fa-utensils text-pink-600"></i>
+                            <span class="ml-3 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Open Kitchens</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+
+        <main class="flex-1 p-6">
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} p-4 rounded-lg mb-2 {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Green Kitchen System</h3>
+                    <p class="text-gray-400">Sustainable waste management and clean cooking energy solutions.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact Info</h4>
+                    <p class="text-gray-400">Email: edsconinvestment@gmail.com</p>
+                    <p class="text-gray-400">Tel: 0722290417 / 0733383339</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">About Us</a></li>
+                        <li><a href="#" class="hover:text-white">Services</a></li>
+                        <li><a href="#" class="hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2024 Edscon Investment LTD. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple JavaScript for interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown menus
+            const dropdowns = document.querySelectorAll('.relative.group');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('click', function(e) {
+                    // Toggle visibility on click for mobile/touch users (if needed)
+                    const menu = dropdown.querySelector('div:last-child');
+                    menu.classList.toggle('hidden');
+                    e.stopPropagation();
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                dropdowns.forEach(dropdown => {
+                    const menu = dropdown.querySelector('.group-hover\\:block');
+                    if (menu && !menu.classList.contains('hidden')) {
+                         menu.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

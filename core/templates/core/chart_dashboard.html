@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %} 
+
+{% block title %}Chart Dashboard - Green Kitchen System{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Define fixed chart dimensions for better layout */
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">System Analytics Dashboard 📈</h1>
+            <p class="text-gray-600 mt-2">Interactive charts generated from operational data.</p>
+        </div>
+        <a href="{% url 'admin_reports' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-150">
+            ← Back to Raw Reports
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <div class="bg-white rounded-lg shadow-xl p-6">
+            <h2 class="text-xl font-semibold mb-4">Waste Collection by Type</h2>
+            <div class="chart-container">
+                <canvas id="wasteTrendsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-xl p-6">
+            <h2 class="text-xl font-semibold mb-4">Daily Revenue (Last 30 Days)</h2>
+            <div class="chart-container">
+                <canvas id="salesDataChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-xl p-6">
+            <h2 class="text-xl font-semibold mb-4">Zone Waste Performance (Total Kg)</h2>
+            <div class="chart-container">
+                <canvas id="zonePerformanceChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-xl p-6">
+            <h2 class="text-xl font-semibold mb-4">Biodigester Average Efficiency</h2>
+            <div class="chart-container flex items-center justify-center">
+                <canvas id="biodigesterChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+    
+</div> {# Use json_script tags to securely pass data from Django to the browser #}
+{{ waste_trends|json_script:"waste-trends-data" }}
+{{ sales_data|json_script:"sales-data-data" }}
+{{ zone_performance|json_script:"zone-performance-data" }}
+{{ biodigester_efficiency|json_script:"biodigester-efficiency-data" }}
+
+<script>
+    // ... (Your JavaScript code remains the same, assuming it is complete) ...
+    document.addEventListener('DOMContentLoaded', function() {
+        // Helper function to safely get data and check if it's empty
+        function getChartData(id) {
+            const element = document.getElementById(id);
+            if (!element || element.textContent.trim() === '[]' || element.textContent.trim() === '') {
+                console.warn(`Chart data not found or empty for ID: ${id}`);
+                return null;
+            }
+            return JSON.parse(element.textContent);
+        }
+
+        // ------------------------------------
+        // 1. Waste Trends Chart (Bar)
+        // ------------------------------------
+        const wasteData = getChartData('waste-trends-data');
+        if (wasteData) {
+            const wasteLabels = wasteData.map(d => d.waste_type.toUpperCase());
+            const wasteTotals = wasteData.map(d => d.total);
+
+            new Chart(document.getElementById('wasteTrendsChart'), {
+                type: 'bar',
+                data: {
+                    labels: wasteLabels,
+                    datasets: [{
+                        label: 'Total Collected (kg)',
+                        data: wasteTotals,
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+        
+        // ------------------------------------
+        // 2. Daily Sales Chart (Line)
+        // ------------------------------------
+        const salesData = getChartData('sales-data-data');
+        if (salesData) {
+            const salesLabels = salesData.map(d => d.distribution_date__date);
+            const dailySales = salesData.map(d => d.daily_sales);
+            const dailyVolume = salesData.map(d => d.daily_volume);
+            
+            new Chart(document.getElementById('salesDataChart'), {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [
+                        {
+                            label: 'Daily Sales (KES)',
+                            data: dailySales,
+                            borderColor: '#f59e0b',
+                            tension: 0.1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Daily Volume (kg)',
+                            data: dailyVolume,
+                            borderColor: '#3b82f6',
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Revenue (KES)' } },
+                        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Volume (kg)' }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        }
+
+        // ------------------------------------
+        // 3. Zone Performance Chart (Bar)
+        // ------------------------------------
+        const zoneData = getChartData('zone-performance-data');
+        if (zoneData) {
+            const zoneLabels = zoneData.map(d => d.collection_point__zone.toUpperCase());
+            const zoneTotals = zoneData.map(d => d.total_waste);
+
+            new Chart(document.getElementById('zonePerformanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: zoneLabels,
+                    datasets: [{
+                        label: 'Total Waste (kg)',
+                        data: zoneTotals,
+                        backgroundColor: '#1e40af',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            });
+        }
+
+        // ------------------------------------
+        // 4. Biodigester Efficiency Chart (Doughnut)
+        // ------------------------------------
+        const bioData = getChartData('biodigester-efficiency-data');
+        if (bioData && bioData.length > 0) {
+            const avgEfficiency = bioData.reduce((sum, item) => sum + item.efficiency, 0) / bioData.length;
+            const remaining = 100 - avgEfficiency;
+            
+            new Chart(document.getElementById('biodigesterChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Avg Efficiency', 'Remaining Capacity'],
+                    datasets: [{
+                        data: [avgEfficiency.toFixed(1), remaining.toFixed(1)],
+                        backgroundColor: ['#8b5cf6', '#d1d5db'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: `Overall Efficiency: ${avgEfficiency.toFixed(1)}%` }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

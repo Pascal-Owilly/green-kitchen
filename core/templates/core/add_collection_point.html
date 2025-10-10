@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Add Collection Point{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-lg shadow-xl p-8">
+    <h1 class="text-3xl font-bold text-green-700 mb-6">Add New Collection Point</h1>
+    
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="space-y-4">
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ field.label }}
+                    </label>
+                    
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="flex items-center">
+                            {# Apply specific classes for the checkbox #}
+                            {% render_field field class="form-checkbox h-4 w-4 text-green-600 border-gray-300 rounded" %}
+                            <span class="ml-2 text-sm text-gray-700">{{ field.label }}</span>
+                        </div>
+                    {% else %}
+                        {# FIX: Use a simple class application for the default styling #}
+                        {# This avoids the problematic |default filter usage in the render_field tag. #}
+                        {% render_field field class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" %}
+                    {% endif %}
+                    
+                    {% for error in field.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition mt-8">
+            <i class="fas fa-plus mr-2"></i>Create Point
+        </button>
+    </form>
+</div>
+{% endblock %}
